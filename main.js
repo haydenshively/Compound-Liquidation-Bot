@@ -52,6 +52,6 @@ Tokens.mainnet.cDAI.uUnitsLoanedOutTo(process.env.PUBLIC_KEY).then((result) => {
     console.log('');
 });
 
-Tokens.mainnet.cDAI.withdraw_uUnits(1e18, process.env.PUBLIC_KEY);
-// Tokens.mainnet.cDAI.withdraw_cUnits(1, process.env.PUBLIC_KEY);
+// Tokens.mainnet.cDAI.withdraw_uUnits(1, process.env.PUBLIC_KEY);
 // Tokens.mainnet.cDAI.supply_uUnits(1, process.env.PUBLIC_KEY);
+Tokens.mainnet.cDAI.liquidate_uUnits('0xa62fdc2b9e7e64bc9e8e39aeba4e4fb4cca58aec',1e-16, Tokens.mainnet.cDAI.address, process.env.PUBLIC_KEY);

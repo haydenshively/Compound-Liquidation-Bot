@@ -1,4 +1,3 @@
-const Tx = require('ethereumjs-tx').Transaction;
 const Contract = require('../Contract.js');
 const CBATABI = require('./abis/cbat.json');
 const CDAIABI = require('./abis/cdai.json');
@@ -12,77 +11,39 @@ class Token extends Contract {
   // Converts ordinary asset to the cToken equivalent (SEND -- uses gas)
   // amount: #tokens
   // inWallet: sends (#tokens) and receives (#ctokens = #tokens / exchange_rate)
-  supply_uUnits(amount, inWallet) {
-    // TODO possibly give value as a param in mint rather than part of the send dict
-    this.contract.methods.mint(amount).send({
-      from: inWallet,
-      gas: 300000,
-      gasPrice: (1.2 * 1e9).toString(),
-    }).on('transactionHash', (hash) => {
-      console.log('Log @Token.supply_uUnits');
-      console.log('--> Hash: ' + hash.toString());
-    }).on('confirmation', (confirmNum, receipt) => {
-      console.log('Log @Token.supply_uUnits');
-      console.log('--> Confirmation Number: ' + confirmNum.toString());
-    }).on('receipt', (receipt) => {
-      console.log('Log @Token.supply_uUnits');
-      console.log(receipt);
-    }).on('error', (error, receipt) => {
-      console.log('Error @Token.supply_uUnits -- ' + error.toString());
-      console.log(receipt);
-    });
+  // Hayden Shively tested 3/21/20
+  async supply_uUnits(amount, inWallet) {
+    const hexAmount = web3.utils.toHex(amount * 1e18);
+    const encodedMethod = this.contract.methods.mint(hexAmount).encodeABI();
+
+    const tx = await this.txFor(encodedMethod, inWallet, 300000, 10 * 1e9);
+    const signedTx = this.sign(tx);
+    this.send(signedTx, 'Token.supply_uUnits');
   }
 
   // Converts the cToken to its ordinary asset equivalent (SEND -- uses gas)
   // amount: #ctokens
   // inWallet: sends (#ctokens) and receives (#tokens <= #ctokens * exchange_rate)
   // CAUTION: #tokens <= #ctokens * exchange_rate <= account_liquidity <= market_liquidity
-  withdraw_cUnits(amount, inWallet) {
-    this.contract.methods.redeem(amount).send({
-      from: inWallet,
-      gas: 90000,
-      gasPrice: (1.2 * 1e9).toString(),
-    }).on('transactionHash', (hash) => {
-      console.log('Log @Token.withdraw_cUnits');
-      console.log('--> Hash: ' + hash.toString());
-    }).on('confirmation', (confirmNum, receipt) => {
-      console.log('Log @Token.withdraw_cUnits');
-      console.log('--> Confirmation Number: ' + confirmNum.toString());
-    }).on('receipt', (receipt) => {
-      console.log('Log @Token.withdraw_cUnits');
-      console.log(receipt);
-    }).on('error', (error, receipt) => {
-      console.log('Error @Token.withdraw_cUnits -- ' + error.toString());
-      console.log(receipt);
-    });
+  // Hayden Shively tested 3/21/20
+  async withdraw_cUnits(amount, inWallet) {
+    const hexAmount = web3.utils.toHex(amount * 1e18);
+    const encodedMethod = this.contract.methods.redeem(hexAmount).encodeABI();
+
+    const tx = await this.txFor(encodedMethod, inWallet, 9000000, 10 * 1e9);
+    const signedTx = this.sign(tx);
+    this.send(signedTx, 'Token.withdraw_cUnits');
   }
 
   // Just like withdraw_cUnits, but amount is in units of the ordinary asset (SEND -- uses gas)
+  // Hayden Shively tested 3/21/20
   async withdraw_uUnits(amount, inWallet) {
-    const hexAmount = web3.utils.toHex(amount);
-    const encoded_method = this.contract.methods.redeemUnderlying(hexAmount).encodeABI();
-    const nonce = await web3.eth.getTransactionCount(process.env.PUBLIC_KEY);
-    const tra = {
-      nonce: web3.utils.toHex(nonce),
-      from: inWallet,
-      to: this.address,
-      gas: web3.utils.toHex(9000000),
-      gasPrice: web3.utils.toHex(10 * 1e9),
-      data: encoded_method,
-    };
+    const hexAmount = web3.utils.toHex(amount * 1e18);
+    const encodedMethod = this.contract.methods.redeemUnderlying(hexAmount).encodeABI();
 
-    const tx = new Tx(tra);// Could add chain/hardfork specifics here
-    tx.sign(Buffer.from(process.env.PRIVATE_KEY, 'hex'));
-    const raw = '0x' + tx.serialize().toString('hex');
-
-    const sentTx = web3.eth.sendSignedTransaction(raw);
-    sentTx.on('receipt', (receipt) => {
-      console.log('Log @Token.withdraw_uUnits - Sending');
-      console.log(receipt);
-    });
-    sentTx.on('error', (error) => {
-      console.log('Error @Token.withdraw_uUnits - Sending - ' + error.toString());
-    });
+    const tx = await this.txFor(encodedMethod, inWallet, 9000000, 10 * 1e9);
+    const signedTx = this.sign(tx);
+    this.send(signedTx, 'Token.withdraw_uUnits');
   }
 
   // Performs liquidation (SEND -- uses gas)
@@ -92,21 +53,12 @@ class Token extends Contract {
   // withWallet: the liquidator's wallet, from which funds will be withdrawn in order to pay debt
   // RETURNS true on success, otherwise false
   async liquidate_uUnits(borrower, amount, cTokenToSeize, withWallet) {
-    const status = await this.contract.liquidateBorrow(borrower, amount, cTokenToSeize).send({
-      from: withWallet,
-      gas: 400000,
-      gasPrice: (2 * 1e9).toString(),
-    });
-    if (status === 0) {
-      return true;
-    }else {
-      console.log('Error @Token.liquidate_uUnits -- ' + status.toString());
-      console.log('--> Borrower: ' + borrower.toString());
-      console.log('--> Amount: ' + amount.toString());
-      console.log('--> Type of Seized Collateral: ' + cTokenToSeize.toString());
-      console.log('--> Wallet: ' + withWallet.toString());
-      return false;
-    }
+    const hexAmount = web3.utils.toHex(amount * 1e18);
+    const encodedMethod = this.contract.methods.liquidateBorrow(borrower, hexAmount, cTokenToSeize).encodeABI();
+
+    const tx = await this.txFor(encodedMethod, withWallet, 9000000, 10 * 1e9);
+    const signedTx = this.sign(tx);
+    this.send(signedTx, 'Token.liquidate_uUnits');
   }
 
   // Returns the current exchange_rate (CALL -- no gas needed)
