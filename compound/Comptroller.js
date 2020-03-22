@@ -9,7 +9,7 @@ class Comptroller extends Contract {
   async enterMarketsFor(cTokens, withWallet) {
     const encodedMethod = this.contract.methods.enterMarkets(cTokens.map((x) => x.address)).encodeABI();
 
-    const tx = await this.txFor(encodedMethod, withWallet, 300000, 1 * 1e9);
+    const tx = await this.txFor(encodedMethod, withWallet, 300000, 3 * 1e9);
     const signedTx = this.sign(tx);
     this.send(signedTx, 'Comptroller.enterMarketsFor');
   }
@@ -20,7 +20,7 @@ class Comptroller extends Contract {
   async exitMarketFor(cToken, withWallet) {
     const encodedMethod = this.contract.methods.exitMarket(cToken.address).encodeABI();
 
-    const tx = await this.txFor(encodedMethod, withWallet, 300000, 1 * 1e9);
+    const tx = await this.txFor(encodedMethod, withWallet, 300000, 3 * 1e9);
     const signedTx = this.sign(tx);
     this.send(signedTx, 'Comptroller.exitMarketFor');
   }

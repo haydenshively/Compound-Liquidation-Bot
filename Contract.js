@@ -26,6 +26,19 @@ class Contract {
     };
   }
 
+  async txWithValueFor(encodedMethod, wallet, gasLimit, gasPrice, value) {
+    const nonce = await web3.eth.getTransactionCount(process.env.PUBLIC_KEY);
+    return {
+      nonce: web3.utils.toHex(nonce),
+      from: wallet,
+      to: this.address,
+      gas: web3.utils.toHex(gasLimit),
+      gasPrice: web3.utils.toHex(gasPrice),
+      data: encodedMethod,
+      value: value,
+    };
+  }
+
   sign(transaction) {
     const tx = new Tx(transaction);// Could add chain/hardfork specifics here
     tx.sign(Buffer.from(process.env.PRIVATE_KEY, 'hex'));

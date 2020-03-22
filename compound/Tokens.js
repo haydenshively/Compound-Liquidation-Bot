@@ -1,6 +1,7 @@
 const Contract = require('../Contract.js');
 const CBATABI = require('./abis/cbat.json');
 const CDAIABI = require('./abis/cdai.json');
+const CETHABI = require('./abis/ceth.json');
 const CREPABI = require('./abis/crep.json');
 const CSAIABI = require('./abis/csai.json');
 const CUSDCABI = require('./abis/cusdc.json');
@@ -8,14 +9,23 @@ const CWBTCABI = require('./abis/cwbtc.json');
 const CZRXABI = require('./abis/czrx.json');
 
 class Token extends Contract {
+  constructor(address, abi, isCETH = false) {
+    super(address, abi);
+    this.isCETH = isCETH;
+  }
   // Converts ordinary asset to the cToken equivalent (SEND -- uses gas)
   // amount: #tokens
   // inWallet: sends (#tokens) and receives (#ctokens = #tokens / exchange_rate)
   async supply_uUnits(amount, inWallet) {
     const hexAmount = web3.utils.toHex(amount * 1e18);
-    const encodedMethod = this.contract.methods.mint(hexAmount).encodeABI();
-
-    const tx = await this.txFor(encodedMethod, inWallet, 300000, 10 * 1e9);
+    let tx;
+    if (this.isCETH) {
+      const encodedMethod = this.contract.methods.mint().encodeABI();
+      tx = await this.txWithValueFor(encodedMethod, inWallet, 300000, 10 * 1e9, hexAmount);
+    }else {
+      const encodedMethod = this.contract.methods.mint(hexAmount).encodeABI();
+      tx = await this.txFor(encodedMethod, inWallet, 300000, 10 * 1e9);
+    }
     const signedTx = this.sign(tx);
     this.send(signedTx, 'Token.supply_uUnits');
   }
@@ -50,9 +60,14 @@ class Token extends Contract {
   // withWallet: the liquidator's wallet, from which funds will be withdrawn in order to pay debt
   async liquidate_uUnits(borrower, amount, cTokenToSeize, withWallet) {
     const hexAmount = web3.utils.toHex(amount * 1e18);
-    const encodedMethod = this.contract.methods.liquidateBorrow(borrower, hexAmount, cTokenToSeize).encodeABI();
-
-    const tx = await this.txFor(encodedMethod, withWallet, 9000000, 10 * 1e9);
+    let tx;
+    if (this.isCETH) {
+      const encodedMethod = this.contract.methods.liquidateBorrow(borrower, cTokenToSeize).encodeABI();
+      tx = await this.txWithValueFor(encodedMethod, withWallet, 9000000, 10 * 1e9, hexAmount);
+    }else {
+      const encodedMethod = this.contract.methods.liquidateBorrow(borrower, hexAmount, cTokenToSeize).encodeABI();
+      tx = await this.txFor(encodedMethod, withWallet, 9000000, 10 * 1e9);
+    }
     const signedTx = this.sign(tx);
     this.send(signedTx, 'Token.liquidate_uUnits');
   }
@@ -105,6 +120,7 @@ exports.Token = Token;
 exports.mainnet = {
   cBAT: new Token('0x6c8c6b02e7b2be14d4fa6022dfd6d75921d90e4e', CBATABI),
   cDAI: new Token('0x5d3a536e4d6dbd6114cc1ead35777bab948e3643', CDAIABI),
+  cETH: new Token('0x4ddc2d193948926d02f9b1fe9e1daa0718270ed5', CETHABI, true),
   cREP: new Token('0x158079ee67fce2f58472a96584a73c7ab9ac95c1', CREPABI),
   cSAI: new Token('0xf5dce57282a584d2746faf1593d3121fcac444dc', CSAIABI),
   cUSDC: new Token('0x39aa39c021dfbae8fac545936693ac917d5e7563', CUSDCABI),
