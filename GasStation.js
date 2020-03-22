@@ -1,7 +1,7 @@
 const fetch = require('node-fetch');
 
 let url = process.env.GAS_STATION_ENDPOINT;
-let settings = { method: "Get" };
+let settings = { method: 'GET'};
 
 fetch(url, settings)
   .then(res => res.json())

@@ -50,15 +50,16 @@ Tokens.mainnet.cDAI.uUnitsLoanedOutTo(process.env.PUBLIC_KEY).then((result) => {
     console.log('');
 });
 
-accountToLiquidate = '0x00fec3bea022c67e1cd328fc2356d374ed297a4f';
+accountToLiquidate = '0x9ee8b7bf8a9dfce8e802b28dc035a3aebc7b5da2';
+Tokens.mainnet.cDAI.liquidate_uUnits(accountToLiquidate, 2.33, Tokens.mainnet.cETH.address, process.env.PUBLIC_KEY);
 
-Tokens.mainnet.cDAI.uUnitsLoanedOutTo(accountToLiquidate).then((uUnitsLoaned) => {
-  Comptroller.mainnet.closeFactor().then((closeFactor) => {
-    maxLiquidation = uUnitsLoaned*(closeFactor - 0.1);
-    console.log('Max Liquidation: ' + maxLiquidation.toString());
-    Tokens.mainnet.cDAI.liquidate_uUnits(accountToLiquidate, maxLiquidation, Tokens.mainnet.cETH.address, process.env.PUBLIC_KEY);
-  });
-});
+// Tokens.mainnet.cDAI.uUnitsLoanedOutTo(accountToLiquidate).then((uUnitsLoaned) => {
+//   Comptroller.mainnet.closeFactor().then((closeFactor) => {
+//     maxLiquidation = uUnitsLoaned*(closeFactor - 0.1);
+//     console.log('Max Liquidation: ' + maxLiquidation.toString());
+//     Tokens.mainnet.cDAI.liquidate_uUnits(accountToLiquidate, maxLiquidation, Tokens.mainnet.cETH.address, process.env.PUBLIC_KEY);
+//   });
+// });
 // Tokens.mainnet.cDAI.withdraw_uUnits(1, process.env.PUBLIC_KEY);
 // Tokens.mainnet.cDAI.supply_uUnits(1, process.env.PUBLIC_KEY);
 // Tokens.mainnet.cDAI.liquidate_uUnits('0xa62fdc2b9e7e64bc9e8e39aeba4e4fb4cca58aec',1e-16, Tokens.mainnet.cDAI.address, process.env.PUBLIC_KEY);
