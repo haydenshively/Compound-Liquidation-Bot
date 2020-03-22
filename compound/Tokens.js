@@ -11,7 +11,6 @@ class Token extends Contract {
   // Converts ordinary asset to the cToken equivalent (SEND -- uses gas)
   // amount: #tokens
   // inWallet: sends (#tokens) and receives (#ctokens = #tokens / exchange_rate)
-  // Hayden Shively tested 3/21/20
   async supply_uUnits(amount, inWallet) {
     const hexAmount = web3.utils.toHex(amount * 1e18);
     const encodedMethod = this.contract.methods.mint(hexAmount).encodeABI();
@@ -25,7 +24,6 @@ class Token extends Contract {
   // amount: #ctokens
   // inWallet: sends (#ctokens) and receives (#tokens <= #ctokens * exchange_rate)
   // CAUTION: #tokens <= #ctokens * exchange_rate <= account_liquidity <= market_liquidity
-  // Hayden Shively tested 3/21/20
   async withdraw_cUnits(amount, inWallet) {
     const hexAmount = web3.utils.toHex(amount * 1e18);
     const encodedMethod = this.contract.methods.redeem(hexAmount).encodeABI();
@@ -36,7 +34,6 @@ class Token extends Contract {
   }
 
   // Just like withdraw_cUnits, but amount is in units of the ordinary asset (SEND -- uses gas)
-  // Hayden Shively tested 3/21/20
   async withdraw_uUnits(amount, inWallet) {
     const hexAmount = web3.utils.toHex(amount * 1e18);
     const encodedMethod = this.contract.methods.redeemUnderlying(hexAmount).encodeABI();
@@ -51,7 +48,6 @@ class Token extends Contract {
   // amount: the amount of debt to repay, in units of the ordinary asset
   // cTokenToSeize: an address of a cToken that the borrower holds as collateral
   // withWallet: the liquidator's wallet, from which funds will be withdrawn in order to pay debt
-  // RETURNS true on success, otherwise false
   async liquidate_uUnits(borrower, amount, cTokenToSeize, withWallet) {
     const hexAmount = web3.utils.toHex(amount * 1e18);
     const encodedMethod = this.contract.methods.liquidateBorrow(borrower, hexAmount, cTokenToSeize).encodeABI();
