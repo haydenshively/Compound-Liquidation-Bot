@@ -1,5 +1,3 @@
-// Project Level
-require('dotenv').config();
 // Compound
 const Tokens = require('./compound/Tokens.js');
 const Comptroller = require('./compound/Comptroller.js');
@@ -51,6 +49,7 @@ exports.process = async(myBalances, underlyingEthPrices, account) => {
   });
 
   if (bestAssetToClose === null) return 0.0;
+  if (bestAssetToClose.symbol === 'cETH') return 0.0;// TODO something is broken here
 
   console.log('Log @process: Searching for best asset to seize');
   tokens.forEach((token) => {
@@ -91,9 +90,9 @@ exports.process = async(myBalances, underlyingEthPrices, account) => {
   // console.log('--> Should seize ' + bestAssetToSeize.symbol);
 
   const expectedProfitNoFees = closingAmount_Eth * (liquidIncent - 1.0);
-  const maxGasMaintainingProfit = expectedProfitNoFees / 0.000000002;// Assuming gas price of 2 gwei
+  const maxGasMaintainingProfit = expectedProfitNoFees / 0.0000000035;// Assuming gas price of 3.5 gwei
   console.log('Log @process: Potential profit is ' + expectedProfitNoFees + ' ETH');
-  console.log('--> Can use up to ' + maxGasMaintainingProfit + ' gas, assuming price = 2 gwei');
+  console.log('--> Can use up to ' + maxGasMaintainingProfit + ' gas, assuming price = 3.5 gwei');
 
   // TODO parameterize this threshold as well as assumed gas price
   if (maxGasMaintainingProfit > 900000) {
@@ -129,8 +128,3 @@ exports.processUnhealthyAccounts = async () => {
 
   return expectedProfitNoFees;
 };
-
-
-exports.processUnhealthyAccounts().then((result) => {
-  console.log(result);
-});
