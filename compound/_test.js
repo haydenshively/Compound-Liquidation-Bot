@@ -1,6 +1,6 @@
 require('dotenv').config();
-const Tokens = require('./compound/Tokens.js');
-const Comptroller = require('./compound/Comptroller.js');
+const Tokens = require('./Tokens.js');
+const Comptroller = require('./Comptroller.js');
 
 Tokens.mainnet.cDAI.exchangeRate().then((result) => {
   console.log('cDAI Exchange Rate');
@@ -49,9 +49,6 @@ Tokens.mainnet.cDAI.uUnitsLoanedOutTo(process.env.PUBLIC_KEY).then((result) => {
     console.log(result);
     console.log('');
 });
-
-accountToLiquidate = '0x9ee8b7bf8a9dfce8e802b28dc035a3aebc7b5da2';
-Tokens.mainnet.cDAI.liquidate_uUnits(accountToLiquidate, 2.33, Tokens.mainnet.cETH.address, process.env.PUBLIC_KEY);
 
 // Tokens.mainnet.cDAI.uUnitsLoanedOutTo(accountToLiquidate).then((uUnitsLoaned) => {
 //   Comptroller.mainnet.closeFactor().then((closeFactor) => {

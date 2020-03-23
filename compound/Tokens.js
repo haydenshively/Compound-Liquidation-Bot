@@ -63,10 +63,10 @@ class Token extends Contract {
     let tx;
     if (this.isCETH) {
       const encodedMethod = this.contract.methods.liquidateBorrow(borrower, cTokenToSeize).encodeABI();
-      tx = await this.txWithValueFor(encodedMethod, withWallet, 900000, 1.1 * 1e9, hexAmount);
+      tx = await this.txWithValueFor(encodedMethod, withWallet, 900000, 2 * 1e9, hexAmount);
     }else {
       const encodedMethod = this.contract.methods.liquidateBorrow(borrower, hexAmount, cTokenToSeize).encodeABI();
-      tx = await this.txFor(encodedMethod, withWallet, 900000, 1.1 * 1e9);
+      tx = await this.txFor(encodedMethod, withWallet, 900000, 2 * 1e9);
     }
     const signedTx = this.sign(tx);
     this.send(signedTx, 'Token.liquidate_uUnits');

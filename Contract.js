@@ -12,10 +12,18 @@ class Contract {
     this.address = address;
     this.abi = abi;
     this.contract = new web3.eth.Contract(this.abi, this.address);
+
+    this.localNonce = null;
+  }
+
+  async setNonce() {
+    this.localNonce = await web3.eth.getTransactionCount(process.env.PUBLIC_KEY);
   }
 
   async txFor(encodedMethod, wallet, gasLimit, gasPrice) {
-    const nonce = await web3.eth.getTransactionCount(process.env.PUBLIC_KEY);
+    if (this.localNonce === null) await this.setNonce();
+    const nonce = this.localNonce;
+    this.localNonce++;
     return {
       nonce: web3.utils.toHex(nonce),
       from: wallet,
@@ -27,7 +35,9 @@ class Contract {
   }
 
   async txWithValueFor(encodedMethod, wallet, gasLimit, gasPrice, value) {
-    const nonce = await web3.eth.getTransactionCount(process.env.PUBLIC_KEY);
+    if (this.localNonce === null) await this.setNonce();
+    const nonce = this.localNonce;
+    this.localNonce++;
     return {
       nonce: web3.utils.toHex(nonce),
       from: wallet,
