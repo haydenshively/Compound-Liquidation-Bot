@@ -1,51 +1,55 @@
 require('dotenv').config();
+const { performance } = require('perf_hooks');
 const Tokens = require('./Tokens.js');
 const Comptroller = require('./Comptroller.js');
 
+let t0;
+
+t0 = performance.now();
 Tokens.mainnet.cDAI.exchangeRate().then((result) => {
-  console.log('cDAI Exchange Rate');
+  console.log('cDAI Exchange Rate: call took ' + (performance.now() - t0) + ' milliseconds');
   console.log(result);
   console.log('');
 });
-
+t0 = performance.now();
 Tokens.mainnet.cDAI.borrowRate().then((result) => {
-  console.log('cDAI Borrow Rate');
+  console.log('cDAI Borrow Rate: call took ' + (performance.now() - t0) + ' milliseconds');
   console.log(result);
   console.log('');
 });
-
+t0 = performance.now();
 Tokens.mainnet.cDAI.supplyRate().then((result) => {
-  console.log('cDAI Supply Rate');
+  console.log('cDAI Supply Rate: call took ' + (performance.now() - t0) + ' milliseconds');
   console.log(result);
   console.log('');
 });
-
+t0 = performance.now();
 Tokens.mainnet.cDAI.cUnitsInCirculation().then((result) => {
-  console.log('cDAI In Circulation');
+  console.log('cDAI In Circulation: call took ' + (performance.now() - t0) + ' milliseconds');
   console.log(result);
   console.log('');
 });
-
+t0 = performance.now();
 Tokens.mainnet.cDAI.uUnitsInContract().then((result) => {
-  console.log('DAI In Contract');
+  console.log('DAI In Contract: call took ' + (performance.now() - t0) + ' milliseconds');
   console.log(result);
   console.log('');
 });
-
+t0 = performance.now();
 Tokens.mainnet.cDAI.uUnitsLoanedOut().then((result) => {
-  console.log('DAI Gross Borrow');
+  console.log('DAI Gross Borrow: call took ' + (performance.now() - t0) + ' milliseconds');
   console.log(result);
   console.log('');
 });
-
+t0 = performance.now();
 Tokens.mainnet.cDAI.uUnitsInContractFor(process.env.PUBLIC_KEY).then((result) => {
-    console.log('Hayden\'s Supplied Dai');
+    console.log('Hayden\'s Supplied Dai: call took ' + (performance.now() - t0) + ' milliseconds');
     console.log(result);
     console.log('');
 });
-
+t0 = performance.now();
 Tokens.mainnet.cDAI.uUnitsLoanedOutTo(process.env.PUBLIC_KEY).then((result) => {
-    console.log('Hayden\'s Borrowed Dai');
+    console.log('Hayden\'s Borrowed Dai: call took ' + (performance.now() - t0) + ' milliseconds');
     console.log(result);
     console.log('');
 });
@@ -61,32 +65,33 @@ Tokens.mainnet.cDAI.uUnitsLoanedOutTo(process.env.PUBLIC_KEY).then((result) => {
 // Tokens.mainnet.cDAI.supply_uUnits(1, process.env.PUBLIC_KEY);
 // Tokens.mainnet.cDAI.liquidate_uUnits('0xa62fdc2b9e7e64bc9e8e39aeba4e4fb4cca58aec',1e-16, Tokens.mainnet.cDAI.address, process.env.PUBLIC_KEY);
 
+t0 = performance.now();
 Comptroller.mainnet.liquidationIncentive().then((result) => {
-  console.log('Compound Liquidation Incentive');
+  console.log('Compound Liquidation Incentive: call took ' + (performance.now() - t0) + ' milliseconds');
   console.log(result);
   console.log('');
 });
-
+t0 = performance.now();
 Comptroller.mainnet.closeFactor().then((result) => {
-  console.log('Compound Close Factor');
+  console.log('Compound Close Factor: call took ' + (performance.now() - t0) + ' milliseconds');
   console.log(result);
   console.log('');
 });
-
+t0 = performance.now();
 Comptroller.mainnet.collateralFactorFor(Tokens.mainnet.cDAI).then((result) => {
-  console.log('cDAI Collateral Factor');
+  console.log('cDAI Collateral Factor: call took ' + (performance.now() - t0) + ' milliseconds');
   console.log(result);
   console.log('');
 });
-
+t0 = performance.now();
 Comptroller.mainnet.marketsEnteredBy(process.env.PUBLIC_KEY).then((result) => {
-  console.log('Hayden\'s Active Markets');
+  console.log('Hayden\'s Active Markets: call took ' + (performance.now() - t0) + ' milliseconds');
   console.log(result);
   console.log('');
 });
-
+t0 = performance.now();
 Comptroller.mainnet.accountLiquidityOf(process.env.PUBLIC_KEY).then((result) => {
-  console.log('Hayden\'s Account Liquidity and Shortfall (in Eth)');
+  console.log('Hayden\'s Account Liquidity and Shortfall (in Eth): call took ' + (performance.now() - t0) + ' milliseconds');
   console.log(result);
   console.log('');
 });

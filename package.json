@@ -15,6 +15,7 @@
     "ganache-cli": "^6.9.1",
     "http-server": "^0.12.1",
     "node-fetch": "^2.6.0",
+    "perf_hooks": "0.0.1",
     "web3": "^1.2.6"
   }
 }
