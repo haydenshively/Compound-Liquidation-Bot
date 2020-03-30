@@ -1,11 +1,12 @@
 const fetch = require('node-fetch');
-
-let url = process.env.ETHPLORER_ENDPOINT;
-let params = {
-  method: 'GET',
-};
+const url = process.env.ETHPLORER_ENDPOINT;
 
 exports.balancesFor = async(wallet) => {
+  // Set HTTP request parameters
+  let params = {
+    method: 'GET',
+  };
+  // Await JSON
   const res = await fetch(url + '/getAddressInfo/' + wallet + '?apiKey=freekey', params);
   const json = await res.json();
 

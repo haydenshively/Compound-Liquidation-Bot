@@ -16,15 +16,15 @@ class Token extends Contract {
   // Converts ordinary asset to the cToken equivalent (SEND -- uses gas)
   // amount: #tokens
   // inWallet: sends (#tokens) and receives (#ctokens = #tokens / exchange_rate)
-  async supply_uUnits(amount, inWallet) {
+  async supply_uUnits(amount, inWallet, gasPrice = 1e9) {
     const hexAmount = web3.utils.toHex(amount * 1e18);
     let tx;
     if (this.isCETH) {
       const encodedMethod = this.contract.methods.mint().encodeABI();
-      tx = await this.txWithValueFor(encodedMethod, inWallet, 300000, 10 * 1e9, hexAmount);
+      tx = await this.txWithValueFor(encodedMethod, inWallet, 300000, gasPrice, hexAmount);
     }else {
       const encodedMethod = this.contract.methods.mint(hexAmount).encodeABI();
-      tx = await this.txFor(encodedMethod, inWallet, 300000, 10 * 1e9);
+      tx = await this.txFor(encodedMethod, inWallet, 900000, gasPrice);
     }
     const signedTx = this.sign(tx);
     this.send(signedTx, 'Token.supply_uUnits');
@@ -34,21 +34,21 @@ class Token extends Contract {
   // amount: #ctokens
   // inWallet: sends (#ctokens) and receives (#tokens <= #ctokens * exchange_rate)
   // CAUTION: #tokens <= #ctokens * exchange_rate <= account_liquidity <= market_liquidity
-  async withdraw_cUnits(amount, inWallet) {
+  async withdraw_cUnits(amount, inWallet, gasPrice = 1e9) {
     const hexAmount = web3.utils.toHex(amount * 1e18);
     const encodedMethod = this.contract.methods.redeem(hexAmount).encodeABI();
 
-    const tx = await this.txFor(encodedMethod, inWallet, 9000000, 10 * 1e9);
+    const tx = await this.txFor(encodedMethod, inWallet, 900000, gasPrice);
     const signedTx = this.sign(tx);
     this.send(signedTx, 'Token.withdraw_cUnits');
   }
 
   // Just like withdraw_cUnits, but amount is in units of the ordinary asset (SEND -- uses gas)
-  async withdraw_uUnits(amount, inWallet) {
+  async withdraw_uUnits(amount, inWallet, gasPrice = 1e9) {
     const hexAmount = web3.utils.toHex(amount * 1e18);
     const encodedMethod = this.contract.methods.redeemUnderlying(hexAmount).encodeABI();
 
-    const tx = await this.txFor(encodedMethod, inWallet, 9000000, 10 * 1e9);
+    const tx = await this.txFor(encodedMethod, inWallet, 900000, gasPrice);
     const signedTx = this.sign(tx);
     this.send(signedTx, 'Token.withdraw_uUnits');
   }
@@ -58,15 +58,15 @@ class Token extends Contract {
   // amount: the amount of debt to repay, in units of the ordinary asset
   // cTokenToSeize: an address of a cToken that the borrower holds as collateral
   // withWallet: the liquidator's wallet, from which funds will be withdrawn in order to pay debt
-  async liquidate_uUnits(borrower, amount, cTokenToSeize, withWallet) {
+  async liquidate_uUnits(borrower, amount, cTokenToSeize, withWallet, gasPrice = 1e9) {
     const hexAmount = web3.utils.toHex(amount * 1e18);
     let tx;
     if (this.isCETH) {
       const encodedMethod = this.contract.methods.liquidateBorrow(borrower, cTokenToSeize).encodeABI();
-      tx = await this.txWithValueFor(encodedMethod, withWallet, 900000, 3.5 * 1e9, hexAmount);
+      tx = await this.txWithValueFor(encodedMethod, withWallet, 900000, gasPrice, hexAmount);
     }else {
       const encodedMethod = this.contract.methods.liquidateBorrow(borrower, hexAmount, cTokenToSeize).encodeABI();
-      tx = await this.txFor(encodedMethod, withWallet, 900000, 3.5 * 1e9);
+      tx = await this.txFor(encodedMethod, withWallet, 900000, gasPrice);
     }
     const signedTx = this.sign(tx);
     this.send(signedTx, 'Token.liquidate_uUnits');
