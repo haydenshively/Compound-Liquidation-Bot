@@ -1,22 +1,20 @@
 // Compound
 const Tokens = require('./compound/Tokens.js');
-const Comptroller = require('./compound/Comptroller.js');
-const Compound = require('./compound/API.js');
-// Chain
-const Etherscan = require('./chain/Etherscan.js');
-const Ethplorer = require('./chain/Ethplorer.js');
-const GasStation = require('./chain/GasStation.js');
 
-
-exports.process = async(myBalances, underlyingEthPrices, account) => {
-  const closeFactor = await Comptroller.mainnet.closeFactor();
-  const liquidIncent = await Comptroller.mainnet.liquidationIncentive();
+exports.possiblyLiquidate = (
+  account,// from AccountService API
+  closeFactor,
+  liquidationIncentive,
+  gasPrices,// in wei
+  cTokenUnderlyingPrices_Eth,// from CTokenService API
+  myBalances) => {
 
   const address = account.address;
   const health = account.health ? account.health.value : 100.0;
-  console.log('Log @process: Analyzing Account');
-  console.log('--> Address: ' + address);
-  console.log('--> Health: ' + health);
+  if (health > 1.0) return 0.0;
+  // console.log('Log @process: Analyzing Account');
+  // console.log('--> Address: ' + address);
+  // console.log('--> Health: ' + health);
 
   let bestAssetToClose = null;
   let bestAssetToSeize = null;
@@ -24,20 +22,24 @@ exports.process = async(myBalances, underlyingEthPrices, account) => {
   let closingAmountEth_supply = 0.0;
 
   const tokens = (account.tokens) ? account.tokens : [];
-  console.log('Log @process: Searching for best asset to close');
+  // console.log('Log @process: Searching for best asset to close');
   tokens.forEach((token) => {
-    const tokenAddress = token.address;
+    // const tokenAddress = token.address;
     const tokenSymbol = token.symbol;
-    // console.log('--> Token ' + tokenSymbol + ' ' + tokenAddress);
+    // console.log('--> Token ' + tokenSymbol);
 
     const borrow_uUnits = (token.borrow_balance_underlying) ? token.borrow_balance_underlying.value : 0.0;
     if (borrow_uUnits > 0) {
       // console.log('----> Borrow (in uUnits): ' + borrow_uUnits);
-      const borrow_Eth = borrow_uUnits * underlyingEthPrices[tokenSymbol];
+      const borrow_Eth = borrow_uUnits * cTokenUnderlyingPrices_Eth[tokenSymbol];
       // console.log('----> Borrow (in Eth): ' + borrow_Eth);
       let closable_Eth = borrow_Eth * closeFactor;
       // console.log('------> Closable by Market (in Eth): ' + closable_Eth);
-      closable_Eth = Math.min(closable_Eth, myBalances[tokenSymbol.substring(1)] * underlyingEthPrices[tokenSymbol]);
+      // Assumes that all cTokens are named like xUND, where x is any letter and UND is the
+      // symbol of the underlying asset
+      const exchangeRate = cTokenUnderlyingPrices_Eth[tokenSymbol] ? cTokenUnderlyingPrices_Eth[tokenSymbol] : 0.0;
+      const mine = myBalances[tokenSymbol.substring(1)] ? myBalances[tokenSymbol.substring(1)] : 0.0;
+      closable_Eth = Math.min(closable_Eth, mine * exchangeRate);
       // console.log('------> Closable by Me (in Eth):     ' + closable_Eth);
 
       if (closable_Eth > closingAmountEth_borrow) {
@@ -51,18 +53,18 @@ exports.process = async(myBalances, underlyingEthPrices, account) => {
   if (bestAssetToClose === null) return 0.0;
   if (bestAssetToClose.symbol === 'cETH') return 0.0;// TODO something is broken here
 
-  console.log('Log @process: Searching for best asset to seize');
+  // console.log('Log @process: Searching for best asset to seize');
   tokens.forEach((token) => {
-    const tokenAddress = token.address;
+    // const tokenAddress = token.address;
     const tokenSymbol = token.symbol;
-    // console.log('--> Token ' + tokenSymbol + ' ' + tokenAddress);
+    // console.log('--> Token ' + tokenSymbol);
 
     const supply_uUnits = (token.supply_balance_underlying) ? token.supply_balance_underlying.value : 0.0;
     if (supply_uUnits > 0) {
       // console.log('----> Supply (in uUnits): ' + supply_uUnits);
-      const supply_Eth = supply_uUnits * underlyingEthPrices[tokenSymbol];
+      const supply_Eth = supply_uUnits * cTokenUnderlyingPrices_Eth[tokenSymbol];
       // console.log('----> Supply (in Eth): ' + supply_Eth);
-      const closable_Eth = supply_Eth / liquidIncent;
+      const closable_Eth = supply_Eth / liquidationIncentive;
       // console.log('------> Seizable by Market (in Eth): ' + closable_Eth);
 
       // Aim to seize the token with the smallest sufficient balance
@@ -89,42 +91,25 @@ exports.process = async(myBalances, underlyingEthPrices, account) => {
   // console.log('----> Amount (in Eth): ' + closingAmount_Eth);
   // console.log('--> Should seize ' + bestAssetToSeize.symbol);
 
-  const expectedProfitNoFees = closingAmount_Eth * (liquidIncent - 1.0);
-  const maxGasMaintainingProfit = expectedProfitNoFees / 0.0000000035;// Assuming gas price of 3.5 gwei
-  console.log('Log @process: Potential profit is ' + expectedProfitNoFees + ' ETH');
-  console.log('--> Can use up to ' + maxGasMaintainingProfit + ' gas, assuming price = 3.5 gwei');
+  const expectedRevenue = closingAmount_Eth * (liquidationIncentive - 1.0);
+  // console.log('Log @process: Potential profit is ' + expectedRevenue + ' ETH');
+  for (const gasPrice of gasPrices) {
+    const maxGasMaintainingProfit = expectedRevenue / (gasPrice / 1e18);
+    // TODO parameterize this threshold
+    if (maxGasMaintainingProfit > 500000) {
+      let symbolClose = bestAssetToClose.symbol;
+      symbolClose = symbolClose.charAt(0).toLowerCase() + symbolClose.substring(1);
+      const closingAmount_uUnits = closingAmount_Eth / cTokenUnderlyingPrices_Eth[bestAssetToClose.symbol];
 
-  // TODO parameterize this threshold as well as assumed gas price
-  if (maxGasMaintainingProfit > 900000) {
-    console.log('Log @process: Going for it!');
-
-    let symbolClose = bestAssetToClose.symbol;
-    symbolClose = symbolClose.charAt(0).toLowerCase() + symbolClose.substring(1);
-    const closingAmount_uUnits = closingAmount_Eth / underlyingEthPrices[bestAssetToClose.symbol];
-
-    Tokens.mainnet[symbolClose].liquidate_uUnits(address, closingAmount_uUnits, bestAssetToSeize.address, process.env.PUBLIC_KEY);
-    return expectedProfitNoFees;
-  }else {
-    return 0.0;
+      Tokens.mainnet[symbolClose].liquidate_uUnits(
+        address,
+        closingAmount_uUnits,
+        bestAssetToSeize.address,
+        process.env.PUBLIC_KEY,
+        gasPrice,
+      );
+      return expectedRevenue;
+    }
   }
-};
-
-exports.processUnhealthyAccounts = async () => {
-  const myBalances = await Ethplorer.balancesFor(process.env.PUBLIC_KEY);
-  console.log('Log @processUnhealthyAccounts: My Balances');
-  console.log(myBalances);
-  // const gasPrices = await GasStation.gasPrice();
-  // console.log('Log @process: Gas Prices - ' + gasPrices.toString());
-  const underlyingEthPrices = await Compound.underlyingEthPrices();
-  console.log('Log @processUnhealthyAccounts: Eth Prices');
-  console.log(underlyingEthPrices);
-
-  let expectedProfitNoFees = 0.0;
-
-  const accounts = await Compound.unhealthyAccounts();
-  for (const account of accounts) {
-    expectedProfitNoFees += await exports.process(myBalances, underlyingEthPrices, account);
-  }
-
-  return expectedProfitNoFees;
+  return 0.0;
 };

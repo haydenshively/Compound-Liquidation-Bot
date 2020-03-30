@@ -1,62 +1,60 @@
 const fetch = require('node-fetch');
+const url = process.env.COMPOUND_ENDPOINT;
 
-let url = process.env.COMPOUND_ENDPOINT;
-let params = {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  },
-};
-
-exports.underlyingEthPrices = async() => {
-  params['body'] = undefined;
+exports.fetchCTokenUnderlyingPrices_Eth = async() => {
+  // Set HTTP request parameters
+  let params = {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+  };
+  // Await JSON
   const res = await fetch(url + '/ctoken', params);
   const json = await res.json();
 
-  let ethPrices = {};
-
-  const error = json['error'];
-  const tokens = json['cToken'];
-
-  tokens.forEach((token) => {
-    ethPrices[token.symbol] = token.underlying_price.value;
+  let cTokenUnderlyingPrices_Eth = {};
+  const cTokens = json['cToken'];
+  cTokens.forEach((cToken) => {
+    cTokenUnderlyingPrices_Eth[cToken.symbol] = cToken.underlying_price.value;
   });
 
-  return ethPrices;
+  return cTokenUnderlyingPrices_Eth;
 };
 
-exports.unhealthyAccounts = async () => {
+exports.fetchAccounts = async (maxHealth) => {
+  // Set HTTP request parameters
+  let params = {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+  };
+  // Initialize variables involved in the HTTP response
   let accounts = [];
   let closeFactor = 0;
-  let liquidIncent = 0;
+  let liquidationIncentive = 0;
   let page = 1;
   let totalPages = 0;
+  // Get at least 1 page of results. Append more pages until all accounts < maxHealth have been fetched
   do {
-    params['body'] = JSON.stringify({
-      // 'addresses': [],
-      // 'block_number': 0,
-      // 'max_health[value]': '1.0',
-      'page_number': page,
-      'page_size': 100,
-    });
-    const res = await fetch(/*url*/'https://api.compound.finance/api/v2' + '/account', params);
+    params['body'] = JSON.stringify({ 'page_number': page, 'page_size': 100 });
+    // Await JSON
+    const res = await fetch(url + '/account', params);
     const json = await res.json();
-
-    const error = json['error'];
+    // Save data from JSON to local variables
+    if (json['accounts'] !== undefined) accounts = [...accounts, ...json['accounts']];
+    if (json['close_factor'] !== undefined) closeFactor = json['close_factor'];
+    if (json['liquidation_incentive'] !== undefined) liquidationIncentive = json['liquidation_incentive'];
+    // Assumes that account results are ordered from least to most healthy
+    if (accounts.some(acct => acct.health && acct.health.value > maxHealth)) break;
+    // Figure out how many pages there are, in case we need to go through all of them
     const pagination = json['pagination_summary'];
-    closeFactor = json['close_factor'];
-    liquidIncent = json['liquidation_incentive'];
-    accounts = [...accounts, ...json['accounts']];
-
-    if (accounts.some(acct => acct.health && acct.health.value > 1.0)) break;
-    if (pagination) totalPages = pagination.total_pages;
+    if (pagination && pagination.total_pages) totalPages = pagination.total_pages;
     page++;
-    console.log('Log @unhealthyAccounts: Loading page ' + page);
   } while (page < totalPages);
 
-  const unhealthyAccounts = accounts.filter(acct => acct.health && acct.health.value < 1.0);
-  console.log('Log @unhealthyAccounts: Found ' + unhealthyAccounts.length.toString());
-
-  return unhealthyAccounts;
+  return accounts.filter(acct => acct.health && acct.health.value <= maxHealth);
 };
