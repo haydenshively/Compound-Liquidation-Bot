@@ -21,6 +21,6 @@ exports.pricesHighToLow_wei = async () => {
       (json.safeLow) ? Number(json.safeLow) * 1e8 : 1e9,
     ];
   }
-  prices.push(75e8);
+  // prices.push(75e7);
   return prices;
 };

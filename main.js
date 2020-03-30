@@ -170,9 +170,9 @@ class Main {
 }
 
 const main = new Main();
-main.startFetchingAccounts(1 * 60 * 1000);
-main.startFetchingCloseFactor(1 * 60 * 1000);
-main.startFetchingLiquidationIncentive(1 * 60 * 1000);
+main.startFetchingAccounts(4 * 60 * 1000);
+main.startFetchingCloseFactor(60 * 1000);
+main.startFetchingLiquidationIncentive(60 * 1000);
 main.startFetchingGasPrices(20 * 1000);
-main.startFetchingCTokenUnderlying(1 * 60 * 1000);
-main.startFetchingMyBalances(1 * 60 * 1000);
+main.startFetchingCTokenUnderlying(60 * 1000);
+main.startFetchingMyBalances(2 * 60 * 1000);
