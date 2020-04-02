@@ -1,0 +1,16 @@
+steps:
+- name: node:12.14.1
+  entrypoint: npm
+  args: [ 'run', 'create-env' ]
+  env:
+    - 'WEB3_ENDPOINT=${_WEB3_ENDPOINT}'
+    - 'COMPOUND_ENDPOINT=${_COMPOUND_ENDPOINT}'
+    - 'ETHPLORER_ENDPOINT=${_ETHPLORER_ENDPOINT}'
+    - 'GAS_STATION_ENDPOINT=${_GAS_STATION_ENDPOINT}'
+    - 'ETHERSCAN_API_KEY=${_ETHERSCAN_API_KEY}'
+    - 'PUBLIC_KEY=${_PUBLIC_KEY}'
+    - 'PRIVATE_KEY=${_PRIVATE_KEY}'
+- name: 'gcr.io/cloud-builders/docker'
+  args: [ 'build', '-t', 'gcr.io/$PROJECT_ID/main:$SHORT_SHA', '.' ]
+images:
+- 'gcr.io/$PROJECT_ID/main:$SHORT_SHA'
