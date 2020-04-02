@@ -32,8 +32,8 @@ class Main {
     this.accountsFetchingHandle = setInterval(
       () => {
         Compound.fetchAccounts(1.2).then((result) => {
-          console.log('Updated Accounts');
-          console.log('');
+          // console.log('Updated Accounts');
+          // console.log('');
           this.accounts = result;
           this.onGotNewData();
         });
@@ -51,8 +51,8 @@ class Main {
       () => {
         Comptroller.mainnet.closeFactor().then((result) => {
           if (this.closeFactor !== result) {
-            console.log('Close Factor Changed');
-            console.log('');
+            // console.log('Close Factor Changed');
+            // console.log('');
             this.closeFactor = result;
             this.onGotNewData();
           }
@@ -71,8 +71,8 @@ class Main {
       () => {
         Comptroller.mainnet.liquidationIncentive().then((result) => {
           if (this.liquidationIncentive !== result) {
-            console.log('Liquidation Incentive Changed');
-            console.log('');
+            // console.log('Liquidation Incentive Changed');
+            // console.log('');
             this.liquidationIncentive = result;
             this.onGotNewData();
           }
@@ -91,9 +91,9 @@ class Main {
       () => {
         GasStation.pricesHighToLow_wei().then((result) => {
           if (JSON.stringify(this.gasPrices) !== JSON.stringify(result)) {
-            console.log('Gas Prices Changed');
-            console.log(result);
-            console.log('');
+            // console.log('Gas Prices Changed');
+            // console.log(result);
+            // console.log('');
             this.gasPrices = result;
             this.onGotNewData();
           }
@@ -112,9 +112,9 @@ class Main {
       () => {
         Compound.fetchCTokenUnderlyingPrices_Eth().then((result) => {
           if (JSON.stringify(this.cTokenUnderlyingPrices_Eth) !== JSON.stringify(result)) {
-            console.log('Token Prices Changed');
-            console.log(result);
-            console.log('');
+            // console.log('Token Prices Changed');
+            // console.log(result);
+            // console.log('');
             this.cTokenUnderlyingPrices_Eth = result;
             this.onGotNewData();
           }
@@ -133,9 +133,9 @@ class Main {
       () => {
         Ethplorer.balancesFor(process.env.PUBLIC_KEY).then((result) => {
           if (JSON.stringify(this.myBalances) !== JSON.stringify(result)) {
-            console.log('My Balances Changed');
-            console.log(result);
-            console.log('');
+            // console.log('My Balances Changed');
+            // console.log(result);
+            // console.log('');
             this.myBalances = result;
             this.onGotNewData();
           }
@@ -164,8 +164,7 @@ class Main {
       if (additionalRevenue > 0) this.accounts[i]['liquidated'] = true;
       expectedRevenue += additionalRevenue;
     }
-    console.log('Expected Revenue: ' + expectedRevenue.toString());
-    console.log('');
+    if (expectedRevenue > 0) console.log('Expected Revenue: ' + expectedRevenue.toString());
   }
 }
 
