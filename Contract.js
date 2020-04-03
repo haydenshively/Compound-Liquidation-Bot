@@ -17,7 +17,7 @@ class Contract {
   }
 
   async setNonce() {
-    this.localNonce = 130;//await web3.eth.getTransactionCount(process.env.PUBLIC_KEY);
+    this.localNonce = await web3.eth.getTransactionCount(process.env.PUBLIC_KEY);
   }
 
   async txFor(encodedMethod, wallet, gasLimit, gasPrice) {
