@@ -26,16 +26,19 @@ class Main {
     this.gasFetchingHandle = null;
     this.cTokenUnderlyingFetchingHandle = null;
     this.myBalancesFetchingHandle = null;
+    this.riskyFetchingHandler = null;
   }
 
   startFetchingAccounts(timeout) {
     this.accountsFetchingHandle = setInterval(
       () => {
-        Compound.fetchAccounts(1.2).then((result) => {
+        this.stopFetchingRiskyLiquidities();
+        Compound.fetchAccounts(1.1).then((result) => {
           // console.log('Updated Accounts');
           // console.log('');
           this.accounts = result;
           this.onGotNewData();
+          this.startFetchingRiskyLiquidities();
         });
       },
       timeout,
@@ -44,6 +47,47 @@ class Main {
 
   stopFetchingAccounts() {
     if (this.accountsFetchingHandle) clearInterval(this.accountsFetchingHandle);
+  }
+
+  startFetchingRiskyLiquidities() {
+    this.riskyFetchingHandler = setInterval(
+      async () => {
+        try {
+          // console.log('Double checking liquidity with Comptroller');
+          // console.log('');
+
+          for (let i = 0; i < this.accounts.length; i++) {
+            if (this.accounts[i]['liquidated']) continue;
+            if ((this.accounts[i].health) && (this.accounts[i].health.value < 0.99)) continue;
+
+            const [liquidity, shortfall] = await Comptroller.mainnet.accountLiquidityOf(this.accounts[i].address);
+            if (liquidity > 0) this.accounts[i].health.value = 100;
+            if (shortfall > 0) {
+              this.accounts[i].health.value = 0.999;
+              const expectedRevenue = ProcessAddress.possiblyLiquidate(
+                this.accounts[i],
+                this.closeFactor,
+                this.liquidationIncentive,
+                this.gasPrices,
+                this.cTokenUnderlyingPrices_Eth,
+                this.myBalances,
+              );
+              if (expectedRevenue > 0) {
+                this.accounts[i]['liquidated'] = true;
+                console.log("{'expected_revenue':" + expectedRevenue.toString() + "}");
+              }
+            }
+          }
+        } catch(error) {
+          console.log(error);
+        }
+      },
+      1 * 60 * 1000,
+    );
+  }
+
+  stopFetchingRiskyLiquidities() {
+    if (this.riskyFetchingHandler) clearInterval(this.riskyFetchingHandler);
   }
 
   startFetchingCloseFactor(timeout) {
@@ -150,10 +194,9 @@ class Main {
   }
 
   onGotNewData() {
-    let expectedRevenue = 0.0;
     for (let i = 0; i < this.accounts.length; i++) {
       if (this.accounts[i]['liquidated']) continue;
-      const additionalRevenue = ProcessAddress.possiblyLiquidate(
+      const expectedRevenue = ProcessAddress.possiblyLiquidate(
         this.accounts[i],
         this.closeFactor,
         this.liquidationIncentive,
@@ -161,10 +204,11 @@ class Main {
         this.cTokenUnderlyingPrices_Eth,
         this.myBalances,
       );
-      if (additionalRevenue > 0) this.accounts[i]['liquidated'] = true;
-      expectedRevenue += additionalRevenue;
+      if (expectedRevenue > 0) {
+        this.accounts[i]['liquidated'] = true;
+        console.log("{'expected_revenue':" + expectedRevenue.toString() + "}");
+      }
     }
-    if (expectedRevenue > 0) console.log('Expected Revenue: ' + expectedRevenue.toString());
   }
 }
 
