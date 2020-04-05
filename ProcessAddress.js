@@ -1,5 +1,6 @@
 // Compound
 const Tokens = require('./compound/Tokens.js');
+// const Comptroller = require('./compound/Comptroller.js');
 
 exports.possiblyLiquidate = (
   account,// from AccountService API
@@ -12,6 +13,10 @@ exports.possiblyLiquidate = (
   const address = account.address;
   const health = account.health ? account.health.value : 100.0;
   if (health > 1.0) return 0.0;
+  // if (health > 0.99) {
+  //   const [ liquidity, shortfall ] = await Comptroller.mainnet.accountLiquidityOf(address);
+  //   if (liquidity > 0.0) return 0.0;
+  // }
   // console.log('Log @process: Analyzing Account');
   // console.log('--> Address: ' + address);
   // console.log('--> Health: ' + health);

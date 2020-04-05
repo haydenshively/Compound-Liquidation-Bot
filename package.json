@@ -1,8 +1,8 @@
 {
-  "name": "first-eth-dapp",
+  "name": "compound-liquidation-bot",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "main.js",
   "scripts": {
     "create-env": "printenv > .env",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -13,8 +13,6 @@
   "dependencies": {
     "dotenv": "^8.2.0",
     "ethereumjs-tx": "^2.1.2",
-    "ganache-cli": "^6.9.1",
-    "http-server": "^0.12.1",
     "node-fetch": "^2.6.0",
     "perf_hooks": "0.0.1",
     "web3": "^1.2.6"

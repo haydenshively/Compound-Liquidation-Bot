@@ -9,15 +9,16 @@ const CWBTCABI = require('./abis/cwbtc.json');
 const CZRXABI = require('./abis/czrx.json');
 
 class Token extends Contract {
-  constructor(address, abi, isCETH = false) {
+  constructor(address, abi, decimalsOfUnderlying = 18, isCETH = false) {
     super(address, abi);
+    this.decimals = Number('1e' + decimalsOfUnderlying.toString());
     this.isCETH = isCETH;
   }
   // Converts ordinary asset to the cToken equivalent (SEND -- uses gas)
   // amount: #tokens
   // inWallet: sends (#tokens) and receives (#ctokens = #tokens / exchange_rate)
   async supply_uUnits(amount, inWallet, gasPrice = 1e9) {
-    const hexAmount = web3.utils.toHex(amount * 1e18);
+    const hexAmount = web3.utils.toHex(amount * this.decimals);
     let tx;
     if (this.isCETH) {
       const encodedMethod = this.contract.methods.mint().encodeABI();
@@ -35,7 +36,7 @@ class Token extends Contract {
   // inWallet: sends (#ctokens) and receives (#tokens <= #ctokens * exchange_rate)
   // CAUTION: #tokens <= #ctokens * exchange_rate <= account_liquidity <= market_liquidity
   async withdraw_cUnits(amount, inWallet, gasPrice = 1e9) {
-    const hexAmount = web3.utils.toHex(amount * 1e18);
+    const hexAmount = web3.utils.toHex(amount * this.decimals);
     const encodedMethod = this.contract.methods.redeem(hexAmount).encodeABI();
 
     const tx = await this.txFor(encodedMethod, inWallet, 900000, gasPrice);
@@ -45,7 +46,7 @@ class Token extends Contract {
 
   // Just like withdraw_cUnits, but amount is in units of the ordinary asset (SEND -- uses gas)
   async withdraw_uUnits(amount, inWallet, gasPrice = 1e9) {
-    const hexAmount = web3.utils.toHex(amount * 1e18);
+    const hexAmount = web3.utils.toHex(amount * this.decimals);
     const encodedMethod = this.contract.methods.redeemUnderlying(hexAmount).encodeABI();
 
     const tx = await this.txFor(encodedMethod, inWallet, 900000, gasPrice);
@@ -59,7 +60,7 @@ class Token extends Contract {
   // cTokenToSeize: an address of a cToken that the borrower holds as collateral
   // withWallet: the liquidator's wallet, from which funds will be withdrawn in order to pay debt
   async liquidate_uUnits(borrower, amount, cTokenToSeize, withWallet, gasPrice = 1e9) {
-    const hexAmount = web3.utils.toHex(amount * 1e18);
+    const hexAmount = web3.utils.toHex(new web3.utils.BN(amount * this.decimals));
     let tx;
     if (this.isCETH) {
       const encodedMethod = this.contract.methods.liquidateBorrow(borrower, cTokenToSeize).encodeABI();
@@ -120,10 +121,10 @@ exports.Token = Token;
 exports.mainnet = {
   cBAT: new Token('0x6c8c6b02e7b2be14d4fa6022dfd6d75921d90e4e', CBATABI),
   cDAI: new Token('0x5d3a536e4d6dbd6114cc1ead35777bab948e3643', CDAIABI),
-  cETH: new Token('0x4ddc2d193948926d02f9b1fe9e1daa0718270ed5', CETHABI, true),
+  cETH: new Token('0x4ddc2d193948926d02f9b1fe9e1daa0718270ed5', CETHABI, 18, true),
   cREP: new Token('0x158079ee67fce2f58472a96584a73c7ab9ac95c1', CREPABI),
   cSAI: new Token('0xf5dce57282a584d2746faf1593d3121fcac444dc', CSAIABI),
-  cUSDC: new Token('0x39aa39c021dfbae8fac545936693ac917d5e7563', CUSDCABI),
-  cWBTC: new Token('0xc11b1268c1a384e55c48c2391d8d480264a3a7f4', CWBTCABI),
+  cUSDC: new Token('0x39aa39c021dfbae8fac545936693ac917d5e7563', CUSDCABI, 6),
+  cWBTC: new Token('0xc11b1268c1a384e55c48c2391d8d480264a3a7f4', CWBTCABI, 8),
   cZRX: new Token('0xb3319f5d18bc0d84dd1b4825dcde5d5f7266d407', CZRXABI),
 };
