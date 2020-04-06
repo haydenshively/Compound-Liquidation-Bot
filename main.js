@@ -214,8 +214,8 @@ class Main {
 
 const main = new Main();
 main.startFetchingAccounts(4 * 60 * 1000);
-main.startFetchingCloseFactor(60 * 1000);
-main.startFetchingLiquidationIncentive(60 * 1000);
-main.startFetchingGasPrices(40 * 1000);
-main.startFetchingCTokenUnderlying(60 * 1000);
-main.startFetchingMyBalances(2 * 60 * 1000);
+main.startFetchingCloseFactor(2* 60 * 1000);
+main.startFetchingLiquidationIncentive(2 * 60 * 1000);
+main.startFetchingGasPrices(60 * 1000);
+main.startFetchingCTokenUnderlying(80 * 1000);
+main.startFetchingMyBalances(5 * 60 * 1000);
