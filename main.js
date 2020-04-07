@@ -34,8 +34,8 @@ class Main {
       () => {
         this.stopFetchingRiskyLiquidities();
         Compound.fetchAccounts(1.1).then((result) => {
-          // console.log('Updated Accounts');
-          // console.log('');
+          console.log('Updated Accounts');
+          console.log('');
           this.accounts = result;
           this.onGotNewData();
           this.startFetchingRiskyLiquidities();
@@ -53,17 +53,24 @@ class Main {
     this.riskyFetchingHandler = setInterval(
       async () => {
         try {
-          // console.log('Double checking liquidity with Comptroller');
-          // console.log('');
+          console.log('Double checking liquidity with Comptroller:');
 
           for (let i = 0; i < this.accounts.length; i++) {
             if (this.accounts[i]['liquidated']) continue;
-            if ((this.accounts[i].health) && (this.accounts[i].health.value < 0.99)) continue;
+            if ((this.accounts[i].health) && (this.accounts[i].health.value < 0.95)) continue;
 
             const [liquidity, shortfall] = await Comptroller.mainnet.accountLiquidityOf(this.accounts[i].address);
             if (liquidity > 0) this.accounts[i].health.value = 100;
             if (shortfall > 0) {
               this.accounts[i].health.value = 0.999;
+
+              for (let key of Object.keys(this.accounts[i].tokens)) {
+                let symbol = this.accounts[i].tokens[key].symbol;
+                symbol = symbol.charAt(0).toLowerCase() + symbol.substring(1);
+                this.accounts[i].tokens[key].borrow_balance_underlying = {'value': await Tokens.mainnet[symbol].uUnitsLoanedOutTo(this.accounts[i].address)};
+                this.accounts[i].tokens[key].supply_balance_underlying = {'value': await Tokens.mainnet[symbol].uUnitsInContractFor(this.accounts[i].address)};
+              }
+
               const expectedRevenue = ProcessAddress.possiblyLiquidate(
                 this.accounts[i],
                 this.closeFactor,
@@ -72,17 +79,14 @@ class Main {
                 this.cTokenUnderlyingPrices_Eth,
                 this.myBalances,
               );
-              if (expectedRevenue > 0) {
-                this.accounts[i]['liquidated'] = true;
-                console.log("{'expected_revenue':" + expectedRevenue.toString() + "}");
-              }
+              if (expectedRevenue > 0) this.accounts[i]['liquidated'] = true;
             }
           }
         } catch(error) {
           console.log(error);
         }
       },
-      1 * 60 * 1000,
+      1 * 20 * 1000,
     );
   }
 
@@ -95,8 +99,8 @@ class Main {
       () => {
         Comptroller.mainnet.closeFactor().then((result) => {
           if (this.closeFactor !== result) {
-            // console.log('Close Factor Changed');
-            // console.log('');
+            console.log('Close Factor Changed');
+            console.log('');
             this.closeFactor = result;
             this.onGotNewData();
           }
@@ -115,8 +119,8 @@ class Main {
       () => {
         Comptroller.mainnet.liquidationIncentive().then((result) => {
           if (this.liquidationIncentive !== result) {
-            // console.log('Liquidation Incentive Changed');
-            // console.log('');
+            console.log('Liquidation Incentive Changed');
+            console.log('');
             this.liquidationIncentive = result;
             this.onGotNewData();
           }
@@ -135,9 +139,9 @@ class Main {
       () => {
         GasStation.pricesHighToLow_wei().then((result) => {
           if (JSON.stringify(this.gasPrices) !== JSON.stringify(result)) {
-            // console.log('Gas Prices Changed');
-            // console.log(result);
-            // console.log('');
+            console.log('Gas Prices Changed');
+            console.log(result);
+            console.log('');
             this.gasPrices = result;
             this.onGotNewData();
           }
@@ -156,9 +160,9 @@ class Main {
       () => {
         Compound.fetchCTokenUnderlyingPrices_Eth().then((result) => {
           if (JSON.stringify(this.cTokenUnderlyingPrices_Eth) !== JSON.stringify(result)) {
-            // console.log('Token Prices Changed');
-            // console.log(result);
-            // console.log('');
+            console.log('Token Prices Changed');
+            console.log(result);
+            console.log('');
             this.cTokenUnderlyingPrices_Eth = result;
             this.onGotNewData();
           }
@@ -177,9 +181,9 @@ class Main {
       () => {
         Ethplorer.balancesFor(process.env.PUBLIC_KEY).then((result) => {
           if (JSON.stringify(this.myBalances) !== JSON.stringify(result)) {
-            // console.log('My Balances Changed');
-            // console.log(result);
-            // console.log('');
+            console.log('My Balances Changed');
+            console.log(result);
+            console.log('');
             this.myBalances = result;
             this.onGotNewData();
           }
@@ -204,18 +208,15 @@ class Main {
         this.cTokenUnderlyingPrices_Eth,
         this.myBalances,
       );
-      if (expectedRevenue > 0) {
-        this.accounts[i]['liquidated'] = true;
-        console.log("{'expected_revenue':" + expectedRevenue.toString() + "}");
-      }
+      if (expectedRevenue > 0) this.accounts[i]['liquidated'] = true;
     }
   }
 }
 
 const main = new Main();
 main.startFetchingAccounts(4 * 60 * 1000);
-main.startFetchingCloseFactor(2* 60 * 1000);
+main.startFetchingCloseFactor(2 * 60 * 1000);
 main.startFetchingLiquidationIncentive(2 * 60 * 1000);
 main.startFetchingGasPrices(60 * 1000);
-main.startFetchingCTokenUnderlying(80 * 1000);
+main.startFetchingCTokenUnderlying(90 * 1000);
 main.startFetchingMyBalances(5 * 60 * 1000);

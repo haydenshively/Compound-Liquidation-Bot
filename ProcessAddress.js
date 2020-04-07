@@ -103,6 +103,7 @@ exports.possiblyLiquidate = (
   // console.log('--> Should seize ' + bestAssetToSeize.symbol);
 
   const expectedRevenue = closingAmount_Eth * (liquidationIncentive - 1.0);
+  console.log(account.address.toString() + ' - ' + expectedRevenue.toString());
   // console.log('Log @process: Potential profit is ' + expectedRevenue + ' ETH');
   for (const gasPrice of gasPrices) {
     const maxGasMaintainingProfit = expectedRevenue / (gasPrice / 1e18);
