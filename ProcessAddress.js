@@ -56,7 +56,7 @@ exports.possiblyLiquidate = (
   });
 
   if (bestAssetToClose === null) return 0.0;
-  if (bestAssetToClose.symbol === 'cETH') return 0.0;// TODO something is broken here
+  // if (bestAssetToClose.symbol === 'cETH') return 0.0;// TODO something is broken here
 
   // console.log('Log @process: Searching for best asset to seize');
   tokens.forEach((token) => {
@@ -75,15 +75,21 @@ exports.possiblyLiquidate = (
       // Aim to seize the token with the smallest sufficient balance
       if ((closable_Eth > closingAmountEth_borrow) && (closingAmountEth_supply > closingAmountEth_borrow)) {
         if (closable_Eth < closingAmountEth_supply) {
+          // Make sure we don't try to seize the thing that we're closing (otherwise Compound throws re-entrancy)
+          if (token !== bestAssetToClose) {
+            // console.log('****> Now the winner!');
+            closingAmountEth_supply = closable_Eth;
+            bestAssetToSeize = token;
+          }
+        }
+      }
+      else if (closable_Eth > closingAmountEth_supply) {
+        // Make sure we don't try to seize the thing that we're closing (otherwise Compound throws re-entrancy)
+        if (token !== bestAssetToClose) {
           // console.log('****> Now the winner!');
           closingAmountEth_supply = closable_Eth;
           bestAssetToSeize = token;
         }
-      }
-      else if (closable_Eth > closingAmountEth_supply) {
-        // console.log('****> Now the winner!');
-        closingAmountEth_supply = closable_Eth;
-        bestAssetToSeize = token;
       }
     }
   });

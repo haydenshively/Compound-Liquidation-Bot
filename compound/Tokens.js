@@ -18,7 +18,7 @@ class Token extends Contract {
   // amount: #tokens
   // inWallet: sends (#tokens) and receives (#ctokens = #tokens / exchange_rate)
   async supply_uUnits(amount, inWallet, gasPrice = 1e9) {
-    const hexAmount = web3.utils.toHex(amount * this.decimals);
+    const hexAmount = web3.utils.toHex(web3.utils.toBN(amount * this.decimals));
     let tx;
     if (this.isCETH) {
       const encodedMethod = this.contract.methods.mint().encodeABI();
@@ -36,7 +36,7 @@ class Token extends Contract {
   // inWallet: sends (#ctokens) and receives (#tokens <= #ctokens * exchange_rate)
   // CAUTION: #tokens <= #ctokens * exchange_rate <= account_liquidity <= market_liquidity
   async withdraw_cUnits(amount, inWallet, gasPrice = 1e9) {
-    const hexAmount = web3.utils.toHex(amount * this.decimals);
+    const hexAmount = web3.utils.toHex(web3.utils.toBN(amount * this.decimals));
     const encodedMethod = this.contract.methods.redeem(hexAmount).encodeABI();
 
     const tx = await this.txFor(encodedMethod, inWallet, 900000, gasPrice);
@@ -46,7 +46,7 @@ class Token extends Contract {
 
   // Just like withdraw_cUnits, but amount is in units of the ordinary asset (SEND -- uses gas)
   async withdraw_uUnits(amount, inWallet, gasPrice = 1e9) {
-    const hexAmount = web3.utils.toHex(amount * this.decimals);
+    const hexAmount = web3.utils.toHex(web3.utils.toBN(amount * this.decimals));
     const encodedMethod = this.contract.methods.redeemUnderlying(hexAmount).encodeABI();
 
     const tx = await this.txFor(encodedMethod, inWallet, 900000, gasPrice);
@@ -60,7 +60,7 @@ class Token extends Contract {
   // cTokenToSeize: an address of a cToken that the borrower holds as collateral
   // withWallet: the liquidator's wallet, from which funds will be withdrawn in order to pay debt
   async liquidate_uUnits(borrower, amount, cTokenToSeize, withWallet, gasPrice = 1e9) {
-    const hexAmount = web3.utils.toHex(new web3.utils.BN(amount * this.decimals));
+    const hexAmount = web3.utils.toHex(web3.utils.toBN(amount * this.decimals));
     let tx;
     if (this.isCETH) {
       const encodedMethod = this.contract.methods.liquidateBorrow(borrower, cTokenToSeize).encodeABI();
