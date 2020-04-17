@@ -58,10 +58,10 @@ class Main {
 
           for (let i = 0; i < this.accounts.length; i++) {
             if (this.accounts[i]['liquidated']) continue;
-            if ((this.accounts[i].health) && (this.accounts[i].health.value < 0.99)) continue;
+            if ((this.accounts[i].health) && (this.accounts[i].health.value > 1.0)) continue;
 
             const [liquidity, shortfall] = await Comptroller.mainnet.accountLiquidityOf(this.accounts[i].address);
-            if (liquidity > 0) this.accounts[i].health.value = 100;
+            if (liquidity > 0) continue;
             if (shortfall > 0) {
               this.accounts[i].health.value = 0.999;
               const expectedRevenue = ProcessAddress.possiblyLiquidate(
