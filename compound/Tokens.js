@@ -5,6 +5,7 @@ const CETHABI = require('./abis/ceth.json');
 const CREPABI = require('./abis/crep.json');
 const CSAIABI = require('./abis/csai.json');
 const CUSDCABI = require('./abis/cusdc.json');
+const CUSDTABI = require('./abis/cusdt.json');
 const CWBTCABI = require('./abis/cwbtc.json');
 const CZRXABI = require('./abis/czrx.json');
 
@@ -125,6 +126,7 @@ exports.mainnet = {
   cREP: new Token('0x158079ee67fce2f58472a96584a73c7ab9ac95c1', CREPABI),
   cSAI: new Token('0xf5dce57282a584d2746faf1593d3121fcac444dc', CSAIABI),
   cUSDC: new Token('0x39aa39c021dfbae8fac545936693ac917d5e7563', CUSDCABI, 6),
+  cUSDT: new Token('0xf650c3d88d12db855b8bf7d11be6c55a4e07dcc9', CUSDTABI, 6),
   cWBTC: new Token('0xc11b1268c1a384e55c48c2391d8d480264a3a7f4', CWBTCABI, 8),
   cZRX: new Token('0xb3319f5d18bc0d84dd1b4825dcde5d5f7266d407', CZRXABI),
 };
