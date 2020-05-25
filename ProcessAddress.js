@@ -103,7 +103,7 @@ exports.possiblyLiquidate = (
   // console.log('--> Should seize ' + bestAssetToSeize.symbol);
 
   const expectedRevenue = closingAmount_Eth * (liquidationIncentive - 1.0);
-  console.log(account.address.toString() + ' - ' + expectedRevenue.toString());
+  // console.log(account.address.toString() + ' - ' + expectedRevenue.toString());
   // console.log('Log @process: Potential profit is ' + expectedRevenue + ' ETH');
   for (const gasPrice of gasPrices) {
     const maxGasMaintainingProfit = expectedRevenue / (gasPrice / 1e18);
@@ -113,6 +113,7 @@ exports.possiblyLiquidate = (
       symbolClose = symbolClose.charAt(0).toLowerCase() + symbolClose.substring(1);
       const closingAmount_uUnits = closingAmount_Eth / cTokenUnderlyingPrices_Eth[bestAssetToClose.symbol];
 
+      console.log(account.address.toString() + '-' + expectedRevenue.toString());
       Tokens.mainnet[symbolClose].liquidate_uUnits(
         address,
         closingAmount_uUnits,

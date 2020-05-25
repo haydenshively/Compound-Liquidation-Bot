@@ -2,7 +2,10 @@ const Web3 = require('web3');
 const Tx = require('ethereumjs-tx').Transaction;
 
 // TODO does this code get run once, or on every import/require
-global.web3 = new Web3(process.env.WEB3_ENDPOINT);
+//global.web3 = new Web3(process.env.WEB3_ENDPOINT);
+net = require('net');
+global.web3 = new Web3('/media/haydenshively/SamsungT5/Geth/geth.ipc', net);
+
 // const account = web3.eth.accounts.privateKeyToAccount('0x'+process.env.PRIVATE_KEY);
 // web3.eth.accounts.wallet.add(account);
 // web3.eth.defaultAccount = account.address;
