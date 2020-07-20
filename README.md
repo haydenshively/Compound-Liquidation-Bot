@@ -8,7 +8,7 @@ I've chosen to make it open source in the spirit of
 decentralization... and also because I no longer use it. I now call
 `liquidateBorrow()` from within a flash loan contract, which requires
 more gas (and therefore higher transaction fees). *As such, I cannot
-profitably liquidate low-value (< 0.5 Ξ) accounts. THIS CODE CAN!*
+profitably liquidate low-value (< 0.5 Ξ) accounts. This code (sometimes) can.*
 
 ## Installation
 
@@ -102,4 +102,4 @@ user.tokens.forEach(token => {
 
 *USE THIS CODE AT YOUR OWN RISK!* There's no warranty, and I can't promise
 that you'll make money. Please do not trust random developers on the internet
-(even me). Read the code thoroughly before use.
+(even me).
