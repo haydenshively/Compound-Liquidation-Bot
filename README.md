@@ -10,6 +10,8 @@ decentralization... and also because I no longer use it. I now call
 more gas (and therefore higher transaction fees). *As such, I cannot
 profitably liquidate low-value (< 0.5 Ξ) accounts. This code (sometimes) can.*
 
+Support me by sending money for coffee: 0x321F954c22B9128BAac787C3241dae977cBBC2e0
+
 ## Installation
 
 ```shell script
