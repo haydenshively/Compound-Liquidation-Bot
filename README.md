@@ -1,5 +1,19 @@
 # Compound Liquidation Bot
 
+___
+Update, November 27 2020:
+Compound has changed significantly since this code was written. For those of you forking it,
+please understand that it **will not** work out of the box. If you want it to be
+remotely competitive, you should look into the following:
+
+- Frontrunning
+- V2 CTokens vs V1 CTokens, and how that impacts whether an account is liquidatable and what
+assets should be repaid/seized
+- Posting prices in the same transaction as the liquidation (only possible in a smart contract)
+
+If you want additional resources, open an issue on the topic and I'll do what I can to help.
+___
+
 This repository provides web3 boilerplate and the basic logic
 necessary to profitably call `liquidateBorrow()` on cToken smart
 contracts.
