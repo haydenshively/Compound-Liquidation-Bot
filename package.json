@@ -13,7 +13,7 @@
   "dependencies": {
     "dotenv": "^8.2.0",
     "ethereumjs-tx": "^2.1.2",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^2.6.1",
     "perf_hooks": "0.0.1",
     "web3": "^1.2.6"
   }
