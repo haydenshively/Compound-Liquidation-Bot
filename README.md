@@ -1,5 +1,11 @@
 # Compound Liquidation Bot
 
+
+___
+Update, April 15 2021:
+I've open-sourced a much better liquidation bot. See [here](https://github.com/haydenshively/Nantucket).
+___
+
 ___
 Update, November 27 2020:
 Compound has changed significantly since this code was written. For those of you forking it,
